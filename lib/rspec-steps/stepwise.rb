@@ -22,6 +22,7 @@ module RSpecStepwise
 
     def build_example_block
       #variables of concern: reporter, instance
+      whole_list = self
       @example_block = proc do
         begin
           self.class.filtered_examples.inject(true) do |success, example|
@@ -33,6 +34,9 @@ module RSpecStepwise
             end
             succeeded = with_indelible_ivars do
               example.run(self, reporter)
+            end
+            unless example.exception.nil?
+              whole_list.set_exception(example.exception)
             end
             RSpec.wants_to_quit = true if self.class.fail_fast? && !succeeded
             success && succeeded
@@ -185,10 +189,10 @@ module RSpecStepwise
         whole_list_example.run(instance, reporter)
       end
 
-      unless whole_list_example.exception.nil?
-        RSpec.wants_to_quit = true if fail_fast?
-        fail_filtered_examples(whole_list_example.exception, reporter)
-      end
+      # unless whole_list_example.exception.nil?
+      #   RSpec.wants_to_quit = true if fail_fast?
+      #   fail_filtered_examples(whole_list_example.exception, reporter)
+      # end
 
       result
     end
